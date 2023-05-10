@@ -1,25 +1,10 @@
 (use joy)
 (use judge)
-(use sh)
-# TODO: migrator..
+(use ../src/storage)
+(use ./setup)
 
-(defn setup-db []
-  ($ rm "./test.db")
-  ($ touch "./test.db")
-  (def out ($< joy migrate)) # silent
-  (db/connect))
-
-(deftest-type with-db
-  :setup (fn []
-           (setup-db))
-  :reset (fn [conn]
-           (setdyn :db/connection conn)
-           (db/disconnect)
-           (setup-db))
-  # TODO: reset
-  :teardown (fn [conn]
-              (setdyn :db/connection conn)
-              (db/disconnect)))
-
-(comment
-  (db/connect "./test.db"))
+(deftest: with-db "test users exists" [_]
+  (test (user-exists? "test") false)
+  (test (user-exists? "admin") false)
+  (create-user "test" "password")
+  (test (user-exists? "test") true))

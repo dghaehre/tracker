@@ -1,6 +1,6 @@
 (use joy)
 (use judge)
-(use ../test/storage)
+(use ../test/setup)
 (use ./password)
 
 (defn user-exists? [username]
@@ -14,12 +14,6 @@
     (if (user-exists? username)
       (error "user already exists")
       (db/insert :user {:username username :password hashed}))))
-
-(deftest: with-db "test users exists" [_]
-  (test (user-exists? "test") false)
-  (test (user-exists? "admin") false)
-  (create-user "test" "password")
-  (test (user-exists? "test") true))
 
 (deftest: with-db "create user" [_]
   (let [password "admin"
