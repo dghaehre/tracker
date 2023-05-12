@@ -1,11 +1,29 @@
 (use judge)
+(use ../test/setup)
+(import cipher)
 
-# TODO: use bcrypt
 (defn secure-password [password]
-  (hash password))
+  (assert (string? password))
+  (assert (not (nil? (dyn :encryption-key))))
+  (cipher/hash-password (dyn :encryption-key) password))
 
 (defn verify-password [password hashed]
-  (= hashed (secure-password password)))
+  (cipher/verify-password (dyn :encryption-key) hashed password))
 
-(test (verify-password "password" (secure-password "password")) true)
-(test (verify-password "sdfsdfsdf" (secure-password "password")) false)
+
+##################
+# Tests and stuff
+##################
+
+(deftest: with-cipher "password hashing" [_]
+  (let [password "secure-password"
+        hashed (secure-password password)]
+    (test (< 20 (length hashed)) true)
+    (test (verify-password password hashed) true)))
+
+(comment
+  # encryption-key must be set for anything to work
+  (dyn :encryption-key)
+  (setdyn :encryption-key (cipher/password-key))
+  (secure-password "password"))
+

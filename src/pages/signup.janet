@@ -1,6 +1,6 @@
 (use joy)
 (use judge)
-(use ../components/forms)
+(use ../utils)
 (import ../storage :as st)
 
 (def- header
@@ -37,22 +37,20 @@
       (if (nil? err) []
         [:p err])])
 
-(route :get "/signup" :get/signup)
 (defn get/signup [req]
   [header
     [:div (signup-form)
       [:p [:a {:href "/login"} "Or login"]]]])
 
-(route :post "/signup" :post/signup)
+# This one doesnt really redirect as I want..
 (defn post/signup [req]
-  (let [username (get-in req [:body :username] "")
-        password (get-in req [:body :password] "")]
-    (try
+  (with-err |(text/html (signup-form $)) "trying to sign up"
+   (let [username (get-in req [:body :username] "")
+          password (get-in req [:body :password] "")]
       (cond
-        (not (valid-username? username)) (text/html (signup-form (string username " is not a valid username")))
-        (not (valid-password? password)) (text/html (signup-form "Your password needs to be at least 10 characters"))
-        (st/user-exists? username)       (text/html (signup-form (string username " already exist")))
-        (do 
-          (st/create-user username password) # TODO: errors?
-          (redirect-to :user/index {:username username})))
-      ([err] (text/html (signup-form (string err)))))))
+        (not (valid-username? username)) (error (string username " is not a valid username"))
+        (not (valid-password? password)) (error "Your password needs to be at least 10 characters")
+        (st/user-exists? username)       (error (string username " already exist"))
+        (let [user (st/create-user username password)]
+          (-> (htmx-redirect :get/user {:username username})
+              (put :session {:username username})))))))

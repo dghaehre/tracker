@@ -13,7 +13,5 @@
   [:main
     [:p "some text"]])
 
-(route :get "/" :get/index)
 (defn get/index [req]
   [header main])
-

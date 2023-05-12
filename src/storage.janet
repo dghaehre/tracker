@@ -20,24 +20,25 @@
         user (create-user "another-test" "admin")]
     (test (user-exists? "another-test") true)
     (test (get user :username) "another-test")
-    (test (get user :password) "252902542.0")))
+    (test (< 20 (length (get user :password))) true)))
 
-(defn validate-user [user-id password]
+(defn validate-user [username password]
   "Returns boolean"
-  (assert (number? user-id))
+  (assert (string? username))
   (assert (string? password))
-  (let [rows  (db/query `select password from user where id = :id` {:id user-id})
+  (let [rows  (db/query `select password from user where username = :username` {:username username})
         row   (get rows 0)]
     (if (nil? row)
       false
       (verify-password password (get row :password)))))
 
 (deftest: with-db "validate user password" [_]
-  (let [password  "password"
-        id        (-> (create-user "test" password) (get :id))]
-    (test (validate-user id password) true)))
+  (create-user "test" "password")
+  (test (validate-user "test" "password") true)
+  (create-user "testing" "somethingelse")
+  (test (validate-user "testing" "password") false))
 
 (comment
   (create-user "test" "admin")
-  (validate-user 1 "admin")
+  (validate-user "test" "admin")
   (user-exists? "test"))

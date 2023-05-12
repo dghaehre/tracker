@@ -6,7 +6,8 @@
 (deftest: with-db "succesful signup" [_]
   (let [req {:body {:username "testing" :password "somethinglooooong"}}
         res (signup/post/signup req)]
-    (test (get res :status) 302)))
+    (test (get res :status) 200)
+    (test (get-in res [:headers "HX-Redirect"]) "/user/testing")))
 
 (deftest: with-db "signup with empty username" [_]
   (let [req {:body nil}
