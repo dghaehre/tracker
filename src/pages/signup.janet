@@ -10,11 +10,14 @@
 (defn valid-username? [name]
   (let [not-valid-names @["admin" "blog" "user" "about" "terms" "login"]]
     (and
-      (< 2 (length name))
-      (empty? (filter |(= name $0) not-valid-names)))))
+      (< 2 (length name))                               # Nothing too short
+      (> 2 (-> (string/split " " name) (length)))       # No spaces
+      (empty? (filter |(= name $0) not-valid-names))))) # No reserved names
 
 (test (valid-username? "dghaehre") true)
 (test (valid-username? "admin") false)
+(test (valid-username? "test ing") false)
+(test (valid-username? " testing") false)
 (test (valid-username? "sd") false)
 
 (defn valid-password? [password]
@@ -42,7 +45,6 @@
     [:div (signup-form)
       [:p [:a {:href "/login"} "Or login"]]]])
 
-# This one doesnt really redirect as I want..
 (defn post/signup [req]
   (with-err |(text/html (signup-form $)) "trying to sign up"
    (let [username (get-in req [:body :username] "")
