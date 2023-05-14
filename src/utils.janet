@@ -29,6 +29,32 @@
 
 (test (with-err |(+ 1 $) "some error" (error 1)) 2)
 
+(defmacro with-session-err-redirect
+  "Redirects to login if we dont have a valid session
+
+  Puts username in scope"
+  [& body]
+  ~(let [username (get-in req [:session :username])]
+       (if (nil? username)
+         (redirect-to :get/login)
+         (do
+           ,;body))))
+
+(test (let [req {:session {:username "test"}}]
+        (with-session-err-redirect
+         (string username "!"))) "test!")
+
+(defmacro with-session
+  "Wraps with-session-err-redirect"
+  [name args & body]
+  ~(defn ,name ,args
+     (with-session-err-redirect ,;body)))
+
+(comment
+  (macex '(let [req {:session {:username "test"}}]
+             (with-session-err-redirect
+              (string username "!")))))
+
 # Are there a cooler way?
 (defn add-header [r key value]
   (let [headers (get r :headers)]
