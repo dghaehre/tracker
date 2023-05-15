@@ -83,3 +83,12 @@
              (with-username
               (string username "!")))))
 
+
+###########################
+# something went wrong page
+###########################
+
+(defn something-went-wrong [err]
+  [:div
+   [:h1 "Obs, something went wrong"]
+   [:p "Error: " (string/trim (string err))]])

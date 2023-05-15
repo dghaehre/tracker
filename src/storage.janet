@@ -47,12 +47,22 @@
       (error "user does not exist"))
     (db/insert :competition {:name name :user_id user-id})))
 
+(defn get-competition [id]
+  (assert (not (nil? id)) "Could not get competition: id is not given")
+  (let [res (-> (db/query `select * from competition where id = :id` {:id id})
+                (get 0))]
+    (if (nil? res)
+      (error "Competition does not exist")
+      res)))
+
 (deftest: with-db "Create competition" [_]
   (create-user "user-with-comp" "password")
   (def c (create-competition "user-with-comp" "test-competition"))
   (test (get c :id) 1)
   (test (get c :user-id) 1)
   (test (get c :name) "test-competition")
+  (def fetched-c (get-competition (string (get c :id))))
+  (test (get fetched-c :name) "test-competition")
   (let [[success err] (protect (create-competition "nobody" "another-comp"))]
     (test success false)
     (test err "user does not exist")))

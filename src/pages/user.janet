@@ -3,13 +3,16 @@
 (use ../utils)
 (import ../storage :as st)
 
+########################
+# Components
+########################
+
 (defn nav [username]
   [:nav
     [:a {:id "home"
          :href (string "/user/" username)}
         username]
     [:a {:href "/logout"} "Logout"]])
-
 
 (defn- show-competitions [username]
   (let [post-url (string "/user/" username "/create-competition-form")]
@@ -34,6 +37,10 @@
         (when err
           [:p {:class "err"} err])]))
 
+########################
+# Routes
+########################
+
 (defn post/create-competition-form [req]
   (with-username
     (text/html (create-competition-form username))))
@@ -53,11 +60,8 @@
 
 (defn get/competition [req]
   (with-username
-    (let [comp-id (get-in req [:params :compid])] # TODO: handle error
-      [:div
-        [:p (string "Competition id: " comp-id)]])))
-
-# Works the same as redirect-to
-(test (do
-        (route :get "/user/:username" :get/user)
-        (url-for :get/user {:username "test"})) "/user/test")
+    (with-err |(something-went-wrong $) "trying to get competition"
+      (let [comp-id (get-in req [:params :compid]) # TODO: handle error
+            competition (st/get-competition comp-id)]
+        [:div
+          [:p (string "Competition name: " (get competition :name))]]))))

@@ -14,3 +14,7 @@
         res (get/user req)]
     (test (get-in res [:status]) 302)
     (test (get-in res [:headers "Location"]) "/login")))
+
+(test (do
+        (route :get "/user/:username" :get/user)
+        (url-for :get/user {:username "test"})) "/user/test")

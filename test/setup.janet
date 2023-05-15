@@ -3,11 +3,19 @@
 (use sh)
 (import cipher)
 
+(defn new-db-name []
+  (let [random (-> (math/random)
+                   (* 100000)
+                   (int/s64)
+                   (int/to-number))]
+    (string "/tmp/tracker-test-" random ".db")))
+
 (defn setup-db []
-  ($ rm "./test.db")
-  ($ touch "./test.db")
-  (def out ($< joy migrate)) # silent
-  (db/connect))
+  (let [db-name (new-db-name)]
+    ($ rm -f ,db-name)
+    (setdyn :out @"") # Dont really know how this works... But this makes it silent!
+    (db/migrate db-name)
+    (db/connect db-name)))
 
 (defn setup-cipher []
   (def key (cipher/password-key))
