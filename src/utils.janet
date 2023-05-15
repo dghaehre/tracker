@@ -20,48 +20,6 @@
                      Y M D HH MM SS)))
   (printf "[%s] %s" (timestamp) str))
 
-(defmacro with-err
-  "Map possible error to given function"
-  [err-fn heading & body]
-  ~(try ,;body ([e] (do
-                      (log (string "Error: " ,heading ": " (string/trim (string e))))
-                      (,err-fn e)))))
-
-(test (with-err |(+ 1 $) "some error" (error 1)) 2)
-
-(defmacro with-session-err-redirect
-  "Redirects to login if we dont have a valid session
-
-  Puts username in scope"
-  [& body]
-  ~(let [username (get-in req [:session :username])]
-       (if (nil? username)
-         (redirect-to :get/login)
-         (do
-           ,;body))))
-
-(test (let [req {:session {:username "test"}}]
-        (with-session-err-redirect
-         (string username "!"))) "test!")
-
-(defmacro with-session
-  "Wraps with-session-err-redirect"
-  [name args & body]
-  ~(defn ,name ,args
-     (with-session-err-redirect ,;body)))
-
-(comment
-  (macex '(let [req {:session {:username "test"}}]
-             (with-session-err-redirect
-              (string username "!")))))
-
-# Are there a cooler way?
-(defn add-header [r key value]
-  (let [headers (get r :headers)]
-    (put headers key value)
-    (put r :headers headers)
-    r))
-
 (defn htmx-redirect [path & otherstuff]
   "Adds a HX-Redirect header for it to work with client side redirect (htmx)"
   (let [location  (url-for path ;otherstuff)]
@@ -87,4 +45,41 @@
     :headers @{"HX-Redirect" "/user/testing"
                "Location" "/user/testing"}
     :status 302})
+
+(defmacro with-err
+  "Map possible error to given function"
+  [err-fn heading & body]
+  ~(try ,;body ([e] (do
+                      (log (string "Error: " ,heading ": " (string/trim (string e))))
+                      (,err-fn e)))))
+
+(test (with-err |(+ 1 $) "some error" (error 1)) 2)
+
+#######################
+# with session macro
+#######################
+
+(defmacro with-username
+  "Redirects to login if we dont have a valid session
+
+  * Puts username in scope
+  * Assumes req is in scope
+  * Assumes username is in session and in params"
+  [& body]
+  ~(let [username       (get-in req [:session :username])
+         param-username (get-in req [:params :username])]
+       (if (or (nil? username) (not (= username param-username)))
+         (redirect-to :get/login)
+         (do
+           ,;body))))
+
+# TODO: add failing test..
+(test (let [req {:session {:username "test"} :params {:username "test"}}]
+        (with-username
+         (string username "!"))) "test!")
+
+(comment
+  (macex '(let [req {:session {:username "test"}}]
+             (with-username
+              (string username "!")))))
 

@@ -10,10 +10,10 @@
 (defn create-user [username password]
   (assert (string? username))
   (assert (string? password))
+  (when (user-exists? username)
+    (error "user already exists"))
   (let [hashed (secure-password password)]
-    (if (user-exists? username)
-      (error "user already exists")
-      (db/insert :user {:username username :password hashed}))))
+      (db/insert :user {:username username :password hashed})))
 
 (deftest: with-db "create user" [_]
   (let [password "admin"
@@ -37,6 +37,25 @@
   (test (validate-user "test" "password") true)
   (create-user "testing" "somethingelse")
   (test (validate-user "testing" "password") false))
+
+(defn create-competition [username name]
+  (assert (string? name))
+  (assert (string? username))
+  (assert (not (empty? name)))
+  (let [user-id (-> (db/query `select id from user where username = :username` {:username username}) (get 0) (get :id))]
+    (when (nil? user-id)
+      (error "user does not exist"))
+    (db/insert :competition {:name name :user_id user-id})))
+
+(deftest: with-db "Create competition" [_]
+  (create-user "user-with-comp" "password")
+  (def c (create-competition "user-with-comp" "test-competition"))
+  (test (get c :id) 1)
+  (test (get c :user-id) 1)
+  (test (get c :name) "test-competition")
+  (let [[success err] (protect (create-competition "nobody" "another-comp"))]
+    (test success false)
+    (test err "user does not exist")))
 
 (comment
   (create-user "test" "admin")

@@ -4,3 +4,34 @@
   --text: white;
   --accent-bg: #22272e;
 }
+
+/* Nav stuff */
+nav {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+nav #home {
+    border: none;
+    font-size: 1.4rem;
+    padding: 0;
+    margin: 0;
+}
+
+
+/* User stuff */
+content #create-competition button {
+  float: right;
+  background: #f0f8ff;
+  padding: 11px;
+}
+content #create-competition button:hover {
+  filter: none;
+}
+content #create-competition button:active {
+  filter: none;
+}
+content #create-competition button:visited {
+  filter: none;
+}
