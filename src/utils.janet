@@ -1,6 +1,7 @@
 (use joy)
 (use judge)
 
+# TODO: Create a macro or something that works like protect. But I want to make sure there is diffrence between errors made by me, and errors coming from deep in the stack
 
 (defn log [str]
   "\"Logger\"
@@ -19,6 +20,9 @@
       (string/format "%d-%.2d-%.2d %.2d:%.2d:%.2d"
                      Y M D HH MM SS)))
   (printf "[%s] %s" (timestamp) str))
+
+(defn map-flipped [iter f]
+  (map iter f))
 
 (defn htmx-redirect [path & otherstuff]
   "Adds a HX-Redirect header for it to work with client side redirect (htmx)"
@@ -53,7 +57,9 @@
                       (log (string "Error: " ,heading ": " (string/trim (string e))))
                       (,err-fn e)))))
 
-(test (with-err |(+ 1 $) "some error" (error 1)) 2)
+(test (do
+        (setdyn :out @"")
+        (with-err |(+ 1 $) "some error" (error 1))) 2)
 
 #######################
 # with session macro
@@ -70,8 +76,7 @@
          param-username (get-in req [:params :username])]
        (if (or (nil? username) (not (= username param-username)))
          (redirect-to :get/login)
-         (do
-           ,;body))))
+         (do ,;body))))
 
 # TODO: add failing test..
 (test (let [req {:session {:username "test"} :params {:username "test"}}]

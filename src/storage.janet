@@ -55,6 +55,14 @@
       (error "Competition does not exist")
       res)))
 
+(defn get-competitions [username]
+  (assert (not (or (nil? username) (empty? username)))
+         "Could not get competition: userid is not given")
+  (db/query `select * from competition c
+            left join user u
+            on c.user_id = u.id
+            where u.username = :username` {:username username}))
+
 (deftest: with-db "Create competition" [_]
   (create-user "user-with-comp" "password")
   (def c (create-competition "user-with-comp" "test-competition"))
@@ -66,6 +74,15 @@
   (let [[success err] (protect (create-competition "nobody" "another-comp"))]
     (test success false)
     (test err "user does not exist")))
+
+(deftest: with-db "Get competions from user" [_]
+  (create-user "user-with-comp" "password")
+  (create-competition "user-with-comp" "test-competition1")
+  (create-competition "user-with-comp" "test-competition2")
+  (let [res (get-competitions "user-with-comp")]
+    (test (length res) 2)
+    (test (get-in res [0 :name]) "test-competition1")
+    (test (get-in res [1 :name]) "test-competition2")))
 
 (comment
   (create-user "test" "admin")

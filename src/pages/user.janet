@@ -14,8 +14,10 @@
         username]
     [:a {:href "/logout"} "Logout"]])
 
-(defn- show-competitions [username]
-  (let [post-url (string "/user/" username "/create-competition-form")]
+(defn- show-competitions [username comps]
+  (pp comps)
+  (let [user-base-url (string "/user/" username)
+        post-url (string user-base-url "/create-competition-form")]
     [:content {:id "show-competitions"}
       [:div {:id "create-competition"}
         [:button {:hx-post post-url :hx-target "#create-competition"} "Create new competition"]]
@@ -25,9 +27,11 @@
            [:th "Your competitions"]
            [:th "Ranking"]]]
        [:tbody
-         [:tr
-          [:td [:a {:href "/something"} "Pullups"]]
-          [:td "1"]]]]]))
+        (map (fn [{:name name :id id}]
+               [:tr
+                [:td [:a {:href (string user-base-url "/competition/" id)} name]]
+                [:td "N/A"]])
+             comps)]]]))
 
 (defn create-competition-form [username &opt err]
   (let [post-url (string "/user/" username "/create-competition")]
@@ -54,14 +58,15 @@
 
 (defn get/user [req]
   (with-username
-    [:div
-      (nav username)
-      (show-competitions username)]))
+    (let [comps (st/get-competitions username)]
+      [:div
+        (nav username)
+        (show-competitions username comps)])))
 
 (defn get/competition [req]
   (with-username
     (with-err |(something-went-wrong $) "trying to get competition"
-      (let [comp-id (get-in req [:params :compid]) # TODO: handle error
+      (let [comp-id (get-in req [:params :comp-id]) # TODO: handle error
             competition (st/get-competition comp-id)]
         [:div
           [:p (string "Competition name: " (get competition :name))]]))))

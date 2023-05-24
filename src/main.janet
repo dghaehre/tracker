@@ -17,7 +17,7 @@
 (route :get "/user/:username" :get/user)
 (route :post "/user/:username/create-competition-form" :post/create-competition-form)
 (route :post "/user/:username/create-competition" :post/create-competition)
-(route :get "/user/:username/competition/:compid" :get/competition)
+(route :get "/user/:username/competition/:comp-id" :get/competition)
 
 # Layout
 (defn app-layout [{:body body :request req}]
