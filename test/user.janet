@@ -6,7 +6,7 @@
 (deftest: with-db "user homepage with valid session" [_]
   (let [req {:session {:username "testing"} :params {:username "testing"}}
         res (get/user req)
-        username-in-header (get-in res [1 1 2])]
+        username-in-header (get-in res [0 1 2])]
     (test username-in-header "testing")))
 
 (deftest: with-db "user homepage with INVALID session" [_]

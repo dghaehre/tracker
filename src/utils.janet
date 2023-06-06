@@ -97,3 +97,14 @@
   [:div
    [:h1 "Obs, something went wrong"]
    [:p "Error: " (string/trim (string err))]])
+
+###########################
+# user navbar
+###########################
+
+(defn user-nav [username]
+  [:nav
+    [:a {:id "home"
+         :href (string "/user/" username)}
+        username]
+    [:a {:href "/logout"} "Logout"]])

@@ -3,6 +3,7 @@
 (use ./pages/login)
 (use ./pages/signup)
 (use ./pages/user)
+(use ./pages/competition)
 
 ######################
 # Routes
@@ -15,8 +16,8 @@
 (route :get "/signup" :get/signup)
 (route :post "/signup" :post/signup)
 (route :get "/user/:username" :get/user)
-(route :post "/user/:username/create-competition-form" :post/create-competition-form)
-(route :post "/user/:username/create-competition" :post/create-competition)
+(route :get "/user/:username/competition/create" :get/create-competition)
+(route :post "/user/:username/competition/create" :post/create-competition)
 (route :get "/user/:username/competition/:comp-id" :get/competition)
 
 # Layout
@@ -33,7 +34,7 @@
       [:link {:href "/app.v2.css" :rel "stylesheet"}]]
      [:body
        body]
-     [:footer # TODO: style
+     [:footer
       (let [username (get-in req [:session :username])]
         (if (nil? username) [:a {:href "/login"} "Login"]
           [:a {:href (string "/user/" username)} username]))]]))

@@ -13,7 +13,10 @@
 (defn setup-db []
   (let [db-name (new-db-name)]
     ($ rm -f ,db-name)
-    (setdyn :out @"") # Dont really know how this works... But this makes it silent!
+    (setdyn :out @"")
+    # ^ Dont really know how this works...
+    #   But this makes everything silent.
+    #   Comment out for debugging
     (db/migrate db-name)
     (db/connect db-name)))
 
@@ -37,3 +40,7 @@
 
 (deftest-type with-cipher
   :setup setup-cipher)
+
+
+(comment
+  (setup-db))
