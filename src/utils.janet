@@ -24,6 +24,13 @@
 (defn map-flipped [iter f]
   (map iter f))
 
+(defn non-empty-string? [str]
+  (and (string? str) (not (= str ""))))
+
+(test (non-empty-string? "test") true)
+(test (non-empty-string? "") false)
+(test (non-empty-string? 12) false)
+
 (defn htmx-redirect [path & otherstuff]
   "Adds a HX-Redirect header for it to work with client side redirect (htmx)"
   (let [location  (url-for path ;otherstuff)]

@@ -19,5 +19,6 @@ CREATE TABLE action (
   user_id integer not null,
   created_at integer not null default(strftime('%s', 'now')),
   updated_at integer,
-  foreign key(user_id) references user(id)
+  foreign key(user_id) references user(id),
+  UNIQUE (name, user_id)
 )

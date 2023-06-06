@@ -11,9 +11,6 @@
   (let [user-base-url (string "/user/" username)
         create-comp-url (string user-base-url "/competition/create")]
     [:content {:id "show-competitions"}
-      [:div {:id "create-competition"}
-        [:a {:href create-comp-url}
-          [:button "Create new competition"]]]
       [:table {:style "display: inline-table; margin: 0;"}
        [:thead
          [:tr
@@ -24,13 +21,15 @@
                [:tr
                 [:td [:a {:href (string user-base-url "/competition/" id)} name]]
                 [:td "N/A"]])
-             comps)]]]))
+             comps)]]
+      [:div {:id "create-competition"}
+        [:a {:href create-comp-url}
+          [:button "Create new competition"]]]]))
 
-(defn- show-record [username]
+(defn- show-record-action [username]
   (let [create-action-url (string "/user/" username "/action/create")]
     [:div
-      [:p "here you can record stuff.."]
-      [:button "Create new record"]
+      [:p "here you can record stuff.. TODO"]
       [:a {:href create-action-url} "Create new action"]]))
 
 (defn create-competition-form [username &opt err]
@@ -41,6 +40,15 @@
         (when err
           [:p {:class "err"} err])]))
 
+(defn- create-action-form [username &opt err]
+  (let [post-url (string "/user/" username "/action/create")]
+    [:form {:hx-post post-url}
+      [:input {:name "name" :placeholder "Action name"}]
+      [:p "Some text explaining what an action is. It basically is what you want to track, like pushups or pullups."]
+      [:button {:type "submit"} "Create new action"]
+      (when err
+        [:p {:class "err"} err])]))
+
 ########################
 # Routes
 ########################
@@ -49,5 +57,18 @@
   (with-username
     (let [comps (st/get-competitions username)]
       [(user-nav username)
-       (show-record username)
+       (show-record-action username)
+       [:hr]
        (show-competitions username comps)])))
+
+(defn get/create-action [req]
+  (with-username
+    [(user-nav username)
+     (create-action-form username)]))
+
+(defn post/create-action [req]
+  (with-username
+    (with-err |(text/html (create-action-form username $)) "trying to create action"
+     (let [name (get-in req [:body :name] "")]
+       (st/create-action username name)
+       (htmx-redirect :get/user {:username username})))))

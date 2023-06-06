@@ -48,7 +48,7 @@
 (defn post/signup [req]
   (with-err |(text/html (signup-form $)) "trying to sign up"
    (let [username (get-in req [:body :username] "")
-          password (get-in req [:body :password] "")]
+         password (get-in req [:body :password] "")]
       (cond
         (not (valid-username? username)) (error (string username " is not a valid username"))
         (not (valid-password? password)) (error "Your password needs to be at least 10 characters")

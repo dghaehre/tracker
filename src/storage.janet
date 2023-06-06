@@ -1,6 +1,7 @@
 (use joy)
 (use judge)
 (use ../test/setup)
+(use ../src/utils)
 (use ./password)
 
 (defn user-exists? [username]
@@ -14,6 +15,13 @@
     (error "user already exists"))
   (let [hashed (secure-password password)]
       (db/insert :user {:username username :password hashed})))
+
+(defn- get-user-id! [username]
+  "Returns user id or throws error"
+  (let [user-id (-> (db/query `select id from user where username = :username` {:username username}) (get 0) (get :id))]
+    (if (nil? user-id)
+      (error "user does not exist")
+      user-id)))
 
 (deftest: with-db "create user" [_]
   (let [password "admin"
@@ -39,12 +47,11 @@
   (test (validate-user "testing" "password") false))
 
 (defn create-competition [username name]
-  (assert (string? name))
-  (assert (string? username))
-  (assert (not (empty? name)))
-  (let [user-id (-> (db/query `select id from user where username = :username` {:username username}) (get 0) (get :id))]
-    (when (nil? user-id)
-      (error "user does not exist"))
+  (assert (non-empty-string? name)
+    "Could not create competition: name is not given")
+  (assert (non-empty-string? username)
+    "Could not create competition: username is not given")
+  (let [user-id (get-user-id! username)]
     (db/insert :competition {:name name :user_id user-id})))
 
 (defn get-competition [id]
@@ -56,7 +63,7 @@
       res)))
 
 (defn get-competitions [username]
-  (assert (not (or (nil? username) (empty? username)))
+  (assert (non-empty-string? username)
          "Could not get competition: userid is not given")
   (db/query `select c.id, c.name, c.user_id from competition c
             left join user u
@@ -87,6 +94,38 @@
     (test (get-in res [1 :name]) "test-competition2")
     (test (get-in res [0 :id]) 1)
     (test (get-in res [1 :id]) 2)))
+
+(defn create-action [username name]
+  (assert (non-empty-string? username)
+    "Could not create action with empty username")
+  (assert (non-empty-string? name)
+    "Could not create action with empty name")
+  (let [user-id (get-user-id! username)
+        [success res] (protect (db/insert :action {:name name :user_id user-id}))]
+    (if success res
+      (cond
+        (string/has-prefix? "UNIQUE constraint failed:" res) (error "action already exists")
+        (error "Something went wrong, could not create action")))))
+
+(defn get-actions [username]
+  (assert (non-empty-string? username)
+    "Could not create action with empty username")
+  (let [user-id (get-user-id! username)]
+    (db/from :action :where {:user_id user-id})))
+
+(deftest: with-db "Create action" [_]
+  (def username "user-with-action")
+  (create-user username "password")
+  (test (-> (create-action username "test-action") (get :name)) "test-action")
+  (let [[success err] (protect (create-action username "test-action"))]
+    (test success false)
+    (test err "action already exists"))
+  (test (-> (create-action username "another-action") (get :id)) 2)
+  (create-user "random-user" "password")
+  (test (-> (create-action "random-user" "test-action") (get :name)) "test-action")
+  (let [actions (get-actions username)]
+    # Should NOT return actions from "random-user"
+    (test (length actions) 2)))
 
 (comment
   (create-user "test" "admin")
