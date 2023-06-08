@@ -111,7 +111,20 @@
   (assert (non-empty-string? username)
     "Could not create action with empty username")
   (let [user-id (get-user-id! username)]
-    (db/from :action :where {:user_id user-id})))
+    (db/from :action :where {:user_id user-id
+                             :status "ACTIVE"})))
+
+(defn delete-action [username name]
+  (assert (non-empty-string? username)
+    "Could not delete action with empty username")
+  (assert (non-empty-string? name)
+    "Could not delete action with empty name")
+  (let [user-id (get-user-id! username)]
+    (db/execute
+      `update action set status = 'DELETED'
+        where user_id = :user_id
+        and   name = :name` {:user_id user-id
+                             :name name})))
 
 (deftest: with-db "Create action" [_]
   (def username "user-with-action")
@@ -125,7 +138,11 @@
   (test (-> (create-action "random-user" "test-action") (get :name)) "test-action")
   (let [actions (get-actions username)]
     # Should NOT return actions from "random-user"
-    (test (length actions) 2)))
+    (test (length actions) 2))
+  (delete-action username "test-action")
+  (let [actions (get-actions username)]
+    # Should only return one action
+    (test (length actions) 1)))
 
 (comment
   (create-user "test" "admin")

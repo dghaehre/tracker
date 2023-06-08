@@ -14,8 +14,12 @@ Setup action:
 - [X] Create sql table for action
 - [X] Create a page for creating a new action
 - [X] Create post endpoint to handle action creation
+- [X] create endpoint for deletion of action
 - [ ] Create page for editing an action
-- [ ] create endpoint for deletion of action
+  - delete
+  - edit name
+  - maybe map to competition?
+  - should this be the same page as the create page?
 
 Tracking:
 
@@ -30,6 +34,6 @@ Tracking:
   - Any competition? invites?
 
 
-### Great design
+### Make design great
 
 ...

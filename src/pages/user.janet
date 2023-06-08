@@ -72,3 +72,10 @@
      (let [name (get-in req [:body :name] "")]
        (st/create-action username name)
        (htmx-redirect :get/user {:username username})))))
+
+# TODO(add error handling)
+(defn post/delete-action [req]
+  (with-username
+    (let [name (get-in req [:body :name] "")]
+      (st/delete-action username name)
+      (htmx-redirect :get/user {:username username}))))

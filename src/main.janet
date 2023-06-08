@@ -10,17 +10,22 @@
 ######################
 
 (route :get "/" :get/index)
+
 (route :get "/login" :get/login)
 (route :post "/login" :post/login)
 (route :get "/logout" :get/logout)
 (route :get "/signup" :get/signup)
 (route :post "/signup" :post/signup)
+
 (route :get "/user/:username" :get/user)
+
 (route :get "/user/:username/competition/create" :get/create-competition)
 (route :post "/user/:username/competition/create" :post/create-competition)
 (route :get "/user/:username/competition/:comp-id" :get/competition)
+
 (route :get "/user/:username/action/create" :get/create-action)
 (route :post "/user/:username/action/create" :post/create-action)
+(route :post "/user/:username/action/delete" :post/delete-action)
 
 # Layout
 (defn app-layout [{:body body :request req}]
