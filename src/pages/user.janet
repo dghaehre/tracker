@@ -49,6 +49,29 @@
       (when err
         [:p {:class "err"} err])]))
 
+(defn- show-delete-action [username action-id &opt err]
+  [ [:button {:hx-delete (string "/user/" username "/action/delete/" action-id)
+              :hx-swap "outerHTML"
+              :hx-confirm "Are you sure you want to delete this action?"}
+     "Delete action"]
+    (when err
+      [:p {:class "err"} err])])
+  
+
+(defn- show-edit-action [username action &opt err success]
+  (let [id        (get action :id)
+        name      (get action :name)
+        post-url  (string "/user/" username "/action/edit/" id)]
+    (assert (number? id) "id must be a number")
+    [:form {:hx-post post-url}
+      [:input {:name "name" :value name}]
+      [:button {:type "submit"} "Edit action"]
+      (show-delete-action username id)
+      (when err
+        [:p {:class "err"} err])
+      (when success
+        [:p {:class "success"} success])]))
+
 ########################
 # Routes
 ########################
@@ -73,9 +96,32 @@
        (st/create-action username name)
        (htmx-redirect :get/user {:username username})))))
 
-# TODO(add error handling)
+(defn get/edit-action [req]
+  (with-username
+    (with-err |(something-went-wrong-with-nav username $) "showing action"
+      (let [action-id (-> (get-in req [:params :action-id])
+                          (to-number))
+            action    (st/get-action username action-id)]
+        [(user-nav username)
+         (show-edit-action username action)]))))
+
+# TODO(add error handling): what if to-number fails?
 (defn post/delete-action [req]
   (with-username
-    (let [name (get-in req [:body :name] "")]
-      (st/delete-action username name)
-      (htmx-redirect :get/user {:username username}))))
+    (let [action-id (-> (get-in req [:params :action-id])
+                        (to-number))]
+        (with-err |(text/html (show-delete-action username action-id $)) "delete action"
+            (do
+              (st/delete-action username action-id)
+              (htmx-redirect :get/user {:username username}))))))
+
+# TODO(add error handling): what if to-number fails?
+(defn post/edit-action [req]
+  (with-username
+    (let [action-id (-> (get-in req [:params :action-id])
+                        (to-number))
+          action    (st/get-action username action-id)]
+      (with-err |(text/html (show-edit-action username action $)) "edit action"
+        (let [new-name (get-in req [:body :name])
+              new-action (st/edit-action username action-id {:name new-name})]
+          (text/html (show-edit-action username new-action nil "Updated ✅")))))))

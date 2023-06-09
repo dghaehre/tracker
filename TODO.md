@@ -7,6 +7,7 @@ Goal: get something useable out the door. Might not look pretty, but I want to b
 - [ ] User specified action
 - [ ] Tie an action with a competition
 
+
 ### Allow for "tracking" a user specified action.
 
 Setup action:
@@ -14,12 +15,12 @@ Setup action:
 - [X] Create sql table for action
 - [X] Create a page for creating a new action
 - [X] Create post endpoint to handle action creation
-- [X] create endpoint for deletion of action
-- [ ] Create page for editing an action
-  - delete
-  - edit name
+- [X] Create endpoint for deletion of action
+- [o] Create page for editing an action
+  - [.] delete
+  - [X] edit name
   - maybe map to competition?
-  - should this be the same page as the create page?
+- [ ] create endpoint for edit of action
 
 Tracking:
 
@@ -37,3 +38,6 @@ Tracking:
 ### Make design great
 
 ...
+
+Can we allow for signup without password?
+

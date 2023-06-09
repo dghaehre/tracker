@@ -114,17 +114,37 @@
     (db/from :action :where {:user_id user-id
                              :status "ACTIVE"})))
 
-(defn delete-action [username name]
+(defn delete-action [username action-id]
   (assert (non-empty-string? username)
     "Could not delete action with empty username")
-  (assert (non-empty-string? name)
-    "Could not delete action with empty name")
+  (assert (and (number? action-id) (not= 0 action-id))
+    "Could not delete action with invalid action-id")
   (let [user-id (get-user-id! username)]
     (db/execute
       `update action set status = 'DELETED'
         where user_id = :user_id
-        and   name = :name` {:user_id user-id
-                             :name name})))
+        and   id = :id` {:user_id user-id
+                         :id action-id})))
+
+(defn get-action [username action-id]
+  (assert (non-empty-string? username)
+    "Could not get action with empty username")
+  (assert (and (number? action-id) (not= 0 action-id))
+    "Could not get action with invalid action-id")
+  (let [user-id (get-user-id! username)
+        action  (-> (db/from :action :where {:user_id user-id
+                                             :id action-id})
+                    (get 0))]
+    (if (nil? action) (error "action does not exist")
+      action)))
+
+(defn edit-action [username action-id new-fields]
+  (assert (non-empty-string? username)
+    "Could not get action with empty username")
+  (assert (and (number? action-id) (not= 0 action-id))
+    "Could not get action with invalid action-id")
+  (let [user-id (get-user-id! username)]
+    (db/update :action {:id action-id :user_id user-id} new-fields)))
 
 (deftest: with-db "Create action" [_]
   (def username "user-with-action")
@@ -134,15 +154,26 @@
     (test success false)
     (test err "action already exists"))
   (test (-> (create-action username "another-action") (get :id)) 2)
+  (test (-> (get-action username 2) (get :name)) "another-action")
   (create-user "random-user" "password")
   (test (-> (create-action "random-user" "test-action") (get :name)) "test-action")
   (let [actions (get-actions username)]
     # Should NOT return actions from "random-user"
     (test (length actions) 2))
-  (delete-action username "test-action")
+  (delete-action username 2)
   (let [actions (get-actions username)]
     # Should only return one action
     (test (length actions) 1)))
+
+(deftest: with-db "Edit action" [_]
+  (def username "user-with-action")
+  (create-user username "password")
+  (def action (create-action username "testing"))
+  (test (-> (get-action username 1) (get :name)) "testing")
+  (let [action-id (get action :id)]
+    (test (-> (edit-action username action-id {:name "updated-name"})
+              (get :name)) "updated-name")
+    (test (-> (get-action username action-id) (get :name)) "updated-name")))
 
 (comment
   (create-user "test" "admin")

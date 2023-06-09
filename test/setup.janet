@@ -2,12 +2,12 @@
 (use judge)
 (use sh)
 (import cipher)
+(use ../src/utils)
 
 (defn new-db-name []
   (let [random (-> (math/random)
                    (* 100000)
-                   (int/s64)
-                   (int/to-number))]
+                   (to-number))]
     (string "/tmp/tracker-test-" random ".db")))
 
 (defn setup-db []

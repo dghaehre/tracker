@@ -95,16 +95,6 @@
              (with-username
               (string username "!")))))
 
-
-###########################
-# something went wrong page
-###########################
-
-(defn something-went-wrong [err]
-  [:div
-   [:h1 "Obs, something went wrong"]
-   [:p "Error: " (string/trim (string err))]])
-
 ###########################
 # user navbar
 ###########################
@@ -115,3 +105,37 @@
          :href (string "/user/" username)}
         username]
     [:a {:href "/logout"} "Logout"]])
+
+
+###########################
+# something went wrong page
+###########################
+
+(defn something-went-wrong [err]
+  [:div
+   [:h1 "Obs, something went wrong"]
+   [:p "Error: " (string/trim (string err))]])
+
+(defn something-went-wrong-with-nav [username err]
+  [(user-nav username)
+   [:div
+     [:h1 "Obs, something went wrong"]
+     [:p "Error: " (string/trim (string err))]]])
+
+#############
+# Error stuff
+#############
+
+(defmacro map-err
+  "Map possible error"
+  [err & body]
+  ~(try ,;body ([_] (error ,err))))
+
+
+# Random
+(defn to-number [a]
+  (map-err (string a " is not a number")
+    (-> (int/s64 a) (int/to-number))))
+
+(comment
+  (let [x (to-number "sdfs")]))
