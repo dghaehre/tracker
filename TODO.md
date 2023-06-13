@@ -8,7 +8,7 @@ Goal: get something useable out the door. Might not look pretty, but I want to b
 - [ ] Tie an action with a competition
 
 
-### Allow for "tracking" a user specified action.
+### Allow for "recording" a user specified action.
 
 Setup action:
 
@@ -21,12 +21,14 @@ Setup action:
   - [X] edit name
   - maybe map to competition?
 - [X] create endpoint for edit of action
+- [ ] Move action code to its own file
 
-Tracking:
+Recording:
 
-- [ ] Create sql table to "track" actions (record?)
-- [ ] Endpoint to allow for "tracking" action
-- [ ] A form on user homepage for "tracking" an action. Should be very easy to record!
+- [X] Create sql table to "record" actions
+- [X] Storage function that allows for recording
+- [ ] Endpoint to allow for "record" action
+- [ ] A form on user homepage for "recording" an action. Should be very easy to record!
 - [ ] Add link to edit action page on user homepage
 
 ### Tie an action with a competition

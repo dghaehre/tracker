@@ -175,6 +175,72 @@
               (get :name)) "updated-name")
     (test (-> (get-action username action-id) (get :name)) "updated-name")))
 
+(defn record-action [username action-id amount &opt time]
+  (default time (os/time))
+  (assert (non-empty-string? username)
+    "Could not record an action with empty username")
+  (assert (and (number? action-id) (not= 0 action-id))
+    "Could not record an action with invalid action-id")
+  (assert (and (number? amount))
+    "Could not record an action with invalid amount")
+  (let [{:year-day year-day :year year } (os/date time :local)]
+    (db/insert {:db/table :record
+                :amount amount
+                :action_id action-id
+                :year year
+                :year_day year-day}
+              :on-conflict [:action_id :year :year_day]
+                 :do :update :set {:amount amount})))
+
+(defn get-todays-recording [username action-id]
+  (assert (non-empty-string? username)
+    "Could not get recording for an action with empty username")
+  (assert (and (number? action-id) (not= 0 action-id))
+    "Could not get recording for an action with invalid action-id")
+  (let [{:year-day year-day :year year } (os/date (os/time) :local)]
+    (db/find-by :record :where {:action_id action-id
+                                :year year
+                                :year_day year-day})))
+
+
+(defn get-actions-with-todays-recording [username]
+  "Returns a list of actions, with :amount as the amount recorded today"
+  (assert (non-empty-string? username)
+    "Could not create action with empty username")
+  (let [user-id (get-user-id! username)
+        {:year-day year-day :year year } (os/date (os/time) :local)]
+    (db/query `select action.*,
+                      coalesce(record.amount, 0) as amount
+              from action left join record
+                on action.id = record.action_id
+                  and record.year     = :year
+                  and record.year_day = :year_day
+              where action.user_id  = :user_id
+                and action.status   = 'ACTIVE'` {:user_id user-id
+                                                 :year year
+                                                 :year_day year-day})))
+
+(deftest: with-db "Record action" [_]
+  (def username "user-with-action")
+  (create-user username "password")
+  (def {:id action-id} (create-action username "testing"))
+  (create-action username "not-to-be-used")
+  # Record action
+  (record-action username action-id 10)
+  (def {:action-id id :amount amount} (get-todays-recording username action-id))
+  (test id 1)
+  (test amount 10)
+  # Update recording
+  (record-action username action-id 20)
+  (def {:action-id id :amount amount} (get-todays-recording username action-id))
+  (test id 1)
+  (test amount 20)
+  # Test get-actions-with-todays-recording
+  (def actions (get-actions-with-todays-recording username))
+  (test (length actions) 2)
+  (test (-> (get actions 0) (get :amount)) 20)
+  (test (-> (get actions 1) (get :amount)) 0))
+
 (comment
   (create-user "test" "admin")
   (validate-user "test" "admin")
