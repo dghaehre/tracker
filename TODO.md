@@ -4,7 +4,7 @@
 
 Goal: get something useable out the door. Might not look pretty, but I want to be able to use it.
 
-- [ ] User specified action
+- [X] User specified action
 - [ ] Tie an action with a competition
 
 
@@ -16,11 +16,11 @@ Setup action:
 - [X] Create a page for creating a new action
 - [X] Create post endpoint to handle action creation
 - [X] Create endpoint for deletion of action
-- [o] Create page for editing an action
-  - [.] delete
+- [X] Create page for editing an action
+  - [X] delete
   - [X] edit name
   - maybe map to competition?
-- [ ] create endpoint for edit of action
+- [X] create endpoint for edit of action
 
 Tracking:
 

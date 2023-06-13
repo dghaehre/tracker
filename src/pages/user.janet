@@ -26,11 +26,30 @@
         [:a {:href create-comp-url}
           [:button "Create new competition"]]]]))
 
-(defn- show-record-action [username]
+# TODO(we want existing value in the input field)
+(defn- show-record-action [username action]
+  (let [id (get action :id)
+        post-url (string "/user/" username "/action/" id "/record")
+        action-url (string "/user/" username "/action/" id)]
+    [:form {:hx-post post-url}
+      [:label {:for "value"}
+        [:a {:href action-url} (get action :name)]
+        [:input {:type "text" :name "value" :placeholder "Record value"}]]
+      [:button {:type "submit"} "Record"]]))
+
+(defn- show-record-actions [username actions]
   (let [create-action-url (string "/user/" username "/action/create")]
-    [:div
-      [:p "here you can record stuff.. TODO"]
-      [:a {:href create-action-url} "Create new action"]]))
+    [(map |(show-record-action username $) actions)
+     [:hr]
+     [:a {:href create-action-url} "Create new action"]]))
+
+# TODO(add graph's and such)
+(defn- show-action [username action]
+  (let [name (get action :name)
+        edit-url (url-for :get/action {:username username
+                                       :action-id (get action :id)})]
+    [ [:h3 name]
+      [:a {:href edit-url} "edit"]]))
 
 (defn create-competition-form [username &opt err]
   (let [post-url (string "/user/" username "/competition/create")]
@@ -61,26 +80,31 @@
 (defn- show-edit-action [username action &opt err success]
   (let [id        (get action :id)
         name      (get action :name)
+        status    (get action :status)
         post-url  (string "/user/" username "/action/edit/" id)]
     (assert (number? id) "id must be a number")
-    [:form {:hx-post post-url}
-      [:input {:name "name" :value name}]
-      [:button {:type "submit"} "Edit action"]
-      (show-delete-action username id)
-      (when err
-        [:p {:class "err"} err])
-      (when success
-        [:p {:class "success"} success])]))
+    (if (= status "DELETED")
+      [:p "This action has been deleted. You can't edit it anymore."]
+      [:form {:hx-post post-url}
+        [:input {:name "name" :value name}]
+        [:button {:type "submit"} "Edit action"]
+        (show-delete-action username id)
+        (when err
+          [:p {:class "err"} err])
+        (when success
+          [:p {:class "success"} success])])))
 
 ########################
 # Routes
 ########################
 
+# TODO(error handling)
 (defn get/user [req]
   (with-username
-    (let [comps (st/get-competitions username)]
+    (let [comps (st/get-competitions username)
+          actions (st/get-actions username)]
       [(user-nav username)
-       (show-record-action username)
+       (show-record-actions username actions)
        [:hr]
        (show-competitions username comps)])))
 
@@ -95,6 +119,14 @@
      (let [name (get-in req [:body :name] "")]
        (st/create-action username name)
        (htmx-redirect :get/user {:username username})))))
+
+(defn get/action [req]
+  (with-username
+    (let [action-id (-> (get-in req [:params :action-id])
+                        (to-number))
+          action    (st/get-action username action-id)]
+        [(user-nav username)
+         (show-action username action)])))
 
 (defn get/edit-action [req]
   (with-username
