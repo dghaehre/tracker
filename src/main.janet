@@ -23,12 +23,13 @@
 (route :post "/user/:username/competition/create" :post/create-competition)
 (route :get "/user/:username/competition/:comp-id" :get/competition)
 
-(route :get "/user/:username/action/:action-id" :get/action)
 (route :get "/user/:username/action/create" :get/create-action)
+(route :post "/user/:username/action/create" :post/create-action)
 (route :get "/user/:username/action/edit/:action-id" :get/edit-action)
 (route :post "/user/:username/action/edit/:action-id" :post/edit-action)
-(route :post "/user/:username/action/create" :post/create-action)
 (route :delete "/user/:username/action/delete/:action-id" :post/delete-action)
+(route :get "/user/:username/action/:action-id" :get/action)
+(route :post "/user/:username/action/:action-id/record" :post/record-action)
 
 # Layout
 (defn app-layout [{:body body :request req}]

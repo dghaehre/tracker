@@ -27,14 +27,16 @@ Recording:
 
 - [X] Create sql table to "record" actions
 - [X] Storage function that allows for recording
-- [ ] Endpoint to allow for "record" action
-- [ ] A form on user homepage for "recording" an action. Should be very easy to record!
-- [ ] Add link to edit action page on user homepage
+- [X] Endpoint to allow for "record" action
+- [X] A form on user homepage for "recording" an action. Should be very easy to record!
+- [X] Add link to edit action page on user homepage
 
 ### Tie an action with a competition
 
 - [ ] Update sql tables to allow for linking an action with a competition.
-  - Any competition? invites?
+  - Any competition?
+  - Invites?
+  - How should competitions set defaults somehow?
 
 
 ### Make design great
@@ -43,3 +45,8 @@ Recording:
 
 Can we allow for signup without password?
 
+
+### Misc
+
+- [ ] Create sql lib that allows for easy sql queries
+  - macro thta reads an sql with "--name: get-user" and creates a function that returns a user

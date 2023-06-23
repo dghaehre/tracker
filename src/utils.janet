@@ -137,5 +137,16 @@
   (map-err (string a " is not a number")
     (-> (int/s64 a) (int/to-number))))
 
+(defn yesterday [&opt time]
+  (default time (os/time))
+  (- time (* 60 60 24)))
+
+(test (let [{:year-day td} (-> (os/time) (os/date :local))
+            {:year-day yd} (-> (yesterday) (os/date :local))]
+        (= td (+ 1 yd))) true)
+
 (comment
+  (os/date (os/time) :local)
+  (def y (-> (yesterday (os/time)) (os/date :local)))
+
   (let [x (to-number "sdfs")]))

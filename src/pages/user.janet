@@ -27,19 +27,24 @@
           [:button "Create new competition"]]]]))
 
 # TODO(we want existing value in the input field)
-(defn- show-record-action [username action]
-  (let [id (get action :id)
+(defn- show-record-action [username action-with-req &opt success err]
+  (let [id (get action-with-req :id)
+        amount (get action-with-req :amount)
         post-url (string "/user/" username "/action/" id "/record")
         action-url (string "/user/" username "/action/" id)]
     [:form {:hx-post post-url}
       [:label {:for "value"}
-        [:a {:href action-url} (get action :name)]
-        [:input {:type "text" :name "value" :placeholder "Record value"}]]
-      [:button {:type "submit"} "Record"]]))
+        [:a {:href action-url} (get action-with-req :name)]
+        [:input {:type "text" :name "amount" :value amount}]]
+      [:button {:type "submit"} "Record"]
+      (when success
+        [:p {:class "success"} success])
+      (when err
+        [:p {:class "err"} err])]))
 
-(defn- show-record-actions [username actions]
+(defn- show-record-actions [username actions-with-req]
   (let [create-action-url (string "/user/" username "/action/create")]
-    [(map |(show-record-action username $) actions)
+    [(map |(show-record-action username $) actions-with-req)
      [:hr]
      [:a {:href create-action-url} "Create new action"]]))
 
@@ -102,9 +107,9 @@
 (defn get/user [req]
   (with-username
     (let [comps (st/get-competitions username)
-          actions (st/get-actions username)]
+          actions-with-req (st/get-actions-with-todays-recording username)]
       [(user-nav username)
-       (show-record-actions username actions)
+       (show-record-actions username actions-with-req)
        [:hr]
        (show-competitions username comps)])))
 
@@ -157,3 +162,17 @@
         (let [new-name (get-in req [:body :name])
               new-action (st/edit-action username action-id {:name new-name})]
           (text/html (show-edit-action username new-action nil "Updated ✅")))))))
+
+(defn post/record-action [req]
+  (with-username
+    (pp req)
+    (let [action-id (-> (get-in req [:params :action-id])
+                        (to-number))
+          amount    (-> (get-in req [:body :amount])
+                        (to-number))
+          action    (st/get-action username action-id)]
+      (with-err |(text/html (show-record-action username action nil $)) "edit action"
+        (do
+          (st/record-action username action-id amount)
+          (let [action-with-req (st/get-action-with-todays-recording username action-id)]
+            (text/html (show-record-action username action-with-req "Recorded ✅" nil))))))))
